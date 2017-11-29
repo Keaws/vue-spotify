@@ -1,10 +1,11 @@
 <template>
   <div class="playlists">
-    <h1>Your playlists:</h1>
+    <h1>Greetings, {{userID}}!</h1>
+    <h2>Your playlists:</h2>
 
     <ul>
         <li v-for="playlist in playlists" :key="playlist.id">
-          <p>{{playlist.name}}</p>
+          <p v-on:click="getSongs(playlist.tracks.href)">{{playlist.name}}</p>
         </li>
     </ul>
 
@@ -12,14 +13,56 @@
 </template>
 
 <script>
+
+import {mapActions} from 'vuex'
+
 export default {
   name: 'Playlists',
   data () {
     return {
-      playlists: [
-        { id: 1, name: '1' },
-        { id: 2, name: '2' }
-      ]
+      playlists: []
+    }
+  },
+  computed: {
+    userID () {
+      return this.$store.state.userID
+    }
+  },
+  created: function () {
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${this.$store.state.token}`)
+
+    fetch('https://api.spotify.com/v1/me', {headers})
+      .then(res => res.json())
+      .then(user => {
+        this.setUserID(user.id)
+        console.log(user)
+        return fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {headers})
+      })
+      .then(res => res.json())
+      .then(playlists => {
+        console.log(playlists)
+        this.playlists = playlists.items
+      })
+      .catch(console.error)
+  },
+  methods: {
+    ...mapActions([
+      'setUserID'
+    ]),
+    getSongs: function (link) {
+      const headers = new Headers()
+      headers.append('Authorization', `Bearer ${this.$store.state.token}`)
+
+      fetch(link, {headers})
+        .then(res => res.json())
+        .then(songs => {
+          console.log(songs)
+          songs.items.forEach(song => {
+            // create getArtist function
+            console.log(`${song.track.artists[0].name} - ${song.track.name}`)
+          })
+        })
     }
   }
 }
