@@ -10,6 +10,7 @@
 <script>
 
 import Playlists from './components/Playlists.vue'
+import Songs from './components/Songs.vue'
 
 import {mapActions} from 'vuex'
 
@@ -21,7 +22,8 @@ export default {
     }
   },
   components: {
-    Playlists
+    Playlists,
+    Songs
   },
   methods: {
     ...mapActions([
@@ -46,6 +48,8 @@ export default {
 </script>
 
 <style>
+* {box-sizing: border-box}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -53,5 +57,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 </style>
