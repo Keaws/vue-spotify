@@ -11,7 +11,7 @@
       <ul class="song-list">
         <li class="song-item" v-for="song in displayedSongs" :key="song.track.id">
             <span>{{getArtist(song.track.artists)}} - {{song.track.name}}</span>
-            <button v-if="canModifyPlaylist" class="remove-song" v-on:click="removeFromPlaylist(song.track.id)">x</button>
+            <button v-if="canModifyPlaylist" class="remove-song" v-on:click="removeFromPlaylist(song.track.uri)">x</button>
         </li>
       </ul>
     </div>
@@ -29,6 +29,11 @@ export default {
   data () {
     return {
       query: ''
+    }
+  },
+  computed: {
+    playListLink () {
+      return `https://api.spotify.com/v1/users/${this.$store.state.userID}/playlists/${this.selectedPlaylist}/tracks`
     }
   },
   methods: {
@@ -59,19 +64,27 @@ export default {
         .then(res => res.json())
         .then(snapshot => {
           console.log('added', snapshot)
-          const link = `https://api.spotify.com/v1/users/${this.$store.state.userID}/playlists/${this.selectedPlaylist}/tracks`
-
-          return API.getSongsFromPlaylist(link, this.$store.state.token)
+          return API.getSongsFromPlaylist(this.playListLink, this.$store.state.token)
         })
         .then(res => res.json())
         .then(songs => {
           this.query = ''
-          this.displayedSongs = songs.items
+          this.displayedSongs = [...songs.items]
         })
         .catch(console.error)
     },
-    removeFromPlaylist: function (id) {
-      console.log('removing', id)
+    removeFromPlaylist: function (trackURI) {
+      API.removeSongFromPlaylist(this.$store.state.userID, this.selectedPlaylist, trackURI, this.$store.state.token)
+        .then(res => res.json())
+        .then(snapshot => {
+          console.log('removed', snapshot)
+          return API.getSongsFromPlaylist(this.playListLink, this.$store.state.token)
+        })
+        .then(res => res.json())
+        .then(songs => {
+          this.displayedSongs = [...songs.items]
+        })
+        .catch(console.error)
     }
   }
 }

@@ -7,7 +7,8 @@ export const store = new Vuex.Store({
   strict: true,
   state: {
     token: null,
-    userID: null
+    userID: null,
+    songs: []
   },
   mutations: {
     setToken (state) {

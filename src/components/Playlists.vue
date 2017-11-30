@@ -82,7 +82,7 @@ export default {
         .then(res => res.json())
         .then(songs => {
           console.log(songs)
-          this.displayedSongs = songs.items
+          this.displayedSongs = [...songs.items]
           this.selectedPlaylist = id
 
           // user may have references to other users' playlists, but he can modify only his own
@@ -98,10 +98,6 @@ export default {
 <style scoped>
 h1, h2 {
   font-weight: normal;
-}
-
-a {
-  color: #42b983;
 }
 
 .playlists {
