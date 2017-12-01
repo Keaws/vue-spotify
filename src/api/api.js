@@ -29,6 +29,7 @@ class API {
     return fetch(`${API_URL}/users/${userID}/playlists/${playlistID}/tracks?uris=spotify:track:${trackID}&position=0`, Object.assign({}, getAuthHeaders(token), {'method': 'POST'}))
   }
 
+  // removes all occurrences of a track, bug or feature - you decide :)
   static removeSongFromPlaylist (userID, playlistID, trackURI, token) {
     return fetch(`${API_URL}/users/${userID}/playlists/${playlistID}/tracks`, Object.assign({}, getAuthHeaders(token),
       {

@@ -66,7 +66,7 @@ export const store = new Vuex.Store({
       state.canModifyPlaylist = canModify
     },
     setError (state, error) {
-      state.error = error
+      state.error = error && error.message ? error.message : error
     }
   },
   actions: {
@@ -87,8 +87,7 @@ export const store = new Vuex.Store({
     },
     getUserPlayLists ({ commit, state }) {
       if (!state.userID) {
-        commit('setError', 'No user found, please relogin')
-        return
+        return commit('setError', 'No user found, please relogin')
       }
 
       API.getUserPlaylists(state.userID, state.token)
@@ -119,7 +118,7 @@ export const store = new Vuex.Store({
           console.log(song)
 
           if (song.tracks.items.length === 0) {
-            throw `Song ${query} not found`
+            throw new Error(`Song ${query} not found`)
           }
 
           console.log(song.tracks.items[0].id)

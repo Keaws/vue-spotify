@@ -3,7 +3,7 @@
 
     <button v-if="!token" v-on:click="openLogin">Click to login with your Spotify account</button>
 
-    <p class="error-msg" v-if="error">Oops! Error occured: {{error}}</p>
+    <p class="error-msg" v-if="error">Oops! Error occured: {{error}} <button class="btn" v-on:click="closeError()">x</button></p>
 
     <Playlists v-if="token" />
   </div>
@@ -14,7 +14,7 @@
 import Playlists from './components/Playlists.vue'
 import Songs from './components/Songs.vue'
 
-import {mapActions, mapGetters} from 'vuex'
+import {mapActions, mapGetters, mapMutations} from 'vuex'
 
 export default {
   name: 'app',
@@ -32,6 +32,9 @@ export default {
     ...mapActions([
       'setToken'
     ]),
+    ...mapMutations([
+      'setError'
+    ]),
     openLogin: function (e) {
       const url = 'https://accounts.spotify.com/authorize/'
       const clientId = '?client_id=4e95c274294946ecad7b116680b1de44'
@@ -42,6 +45,9 @@ export default {
       const loginURL = `${url}${clientId}${responseType}${redirectURI}${scope}`
 
       window.location.href = loginURL
+    },
+    closeError: function () {
+      this.setError(null)
     }
   },
   mounted: function () {
@@ -66,6 +72,11 @@ ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
+}
+
+.btn {
+  cursor: pointer;
+  border-radius: 10px;
 }
 
 .error-msg {

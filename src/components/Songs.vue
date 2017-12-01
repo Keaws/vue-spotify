@@ -4,14 +4,14 @@
 
     <div v-if="songs.length > 0">
       <form v-if="canModifyPlaylist" class="add-song" v-on:submit.prevent="addSong()" action="">
-        <input v-model="query" type="text" placeholder="song name" />
+        <input v-bind:class="{ invalid: isEmpty }" v-model="query" type="text" placeholder="song name" />
         <button type="submit">Add to playlist</button>
       </form>
 
       <ul class="song-list">
-        <li class="song-item" v-for="song in songs" :key="song.track.id">
+        <li class="song-item" v-for="song in songs" :key="song.track.id + Math.random()"> <!-- Math.random() in case there a track occurs more than once -->
             <span>{{getArtist(song.track.artists)}} - {{song.track.name}}</span>
-            <button v-if="canModifyPlaylist" class="remove-song" v-on:click="remove(song.track.uri)">x</button>
+            <button v-if="canModifyPlaylist" class="btn" v-on:click="remove(song.track.uri)">x</button>
         </li>
       </ul>
     </div>
@@ -27,7 +27,8 @@ export default {
   name: 'Songs',
   data () {
     return {
-      query: ''
+      query: '',
+      isEmpty: false
     }
   },
   computed: {
@@ -46,12 +47,14 @@ export default {
       return artists.map(artist => artist.name).join(', ')
     },
     addSong: function () {
-      if (!this.selectedPlaylist || !this.query) {
+      if (!this.query) {
+        this.isEmpty = true
         return
       }
 
       this.addSongToPlaylist(this.query)
       this.query = ''
+      this.isEmpty = false
     },
     remove: function (trackURI) {
       this.removeFromPlaylist(trackURI)
@@ -84,9 +87,8 @@ export default {
   padding: 1rem 0;
 }
 
-.remove-song {
-  cursor: pointer;
-  border-radius: 10px;
+.invalid {
+  border-color: red
 }
 
 </style>
