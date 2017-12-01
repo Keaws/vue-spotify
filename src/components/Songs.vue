@@ -1,17 +1,17 @@
 <template>
   <div class="songs">
-    <p v-if="displayedSongs && displayedSongs.length === 0">Click on a playlist to display songs</p>
+    <p v-if="songs.length === 0">Click on a playlist to display songs</p>
 
-    <div v-if="displayedSongs && displayedSongs.length > 0">
+    <div v-if="songs.length > 0">
       <form v-if="canModifyPlaylist" class="add-song" v-on:submit.prevent="addSong()" action="">
         <input v-model="query" type="text" placeholder="song name" />
         <button type="submit">Add to playlist</button>
       </form>
 
       <ul class="song-list">
-        <li class="song-item" v-for="song in displayedSongs" :key="song.track.id">
+        <li class="song-item" v-for="song in songs" :key="song.track.id">
             <span>{{getArtist(song.track.artists)}} - {{song.track.name}}</span>
-            <button v-if="canModifyPlaylist" class="remove-song" v-on:click="removeFromPlaylist(song.track.uri)">x</button>
+            <button v-if="canModifyPlaylist" class="remove-song" v-on:click="remove(song.track.uri)">x</button>
         </li>
       </ul>
     </div>
@@ -21,22 +21,27 @@
 
 <script>
 
-import API from '../api/api'
+import {mapGetters, mapActions} from 'vuex'
 
 export default {
   name: 'Songs',
-  props: ['displayedSongs', 'selectedPlaylist', 'canModifyPlaylist'],
   data () {
     return {
       query: ''
     }
   },
   computed: {
-    playListLink () {
-      return `https://api.spotify.com/v1/users/${this.$store.state.userID}/playlists/${this.selectedPlaylist}/tracks`
-    }
+    ...mapGetters([
+      'songs',
+      'selectedPlaylist',
+      'canModifyPlaylist'
+    ])
   },
   methods: {
+    ...mapActions([
+      'addSongToPlaylist',
+      'removeFromPlaylist'
+    ]),
     getArtist: function (artists) {
       return artists.map(artist => artist.name).join(', ')
     },
@@ -45,55 +50,18 @@ export default {
         return
       }
 
-      API.searchForSong(this.query, this.$store.state.token)
-        .then(res => res.json())
-        .then(song => {
-          console.log(song)
-
-          if (song.tracks.items.length === 0) {
-            console.log('song not found')
-
-            // show error
-
-            return
-          }
-
-          console.log(song.tracks.items[0].id)
-          return API.addSongToPlaylist(this.$store.state.userID, this.selectedPlaylist, song.tracks.items[0].id, this.$store.state.token)
-        })
-        .then(res => res.json())
-        .then(snapshot => {
-          console.log('added', snapshot)
-          return API.getSongsFromPlaylist(this.playListLink, this.$store.state.token)
-        })
-        .then(res => res.json())
-        .then(songs => {
-          this.query = ''
-          this.displayedSongs = [...songs.items]
-        })
-        .catch(console.error)
+      this.addSongToPlaylist(this.query)
+      this.query = ''
     },
-    removeFromPlaylist: function (trackURI) {
-      API.removeSongFromPlaylist(this.$store.state.userID, this.selectedPlaylist, trackURI, this.$store.state.token)
-        .then(res => res.json())
-        .then(snapshot => {
-          console.log('removed', snapshot)
-          return API.getSongsFromPlaylist(this.playListLink, this.$store.state.token)
-        })
-        .then(res => res.json())
-        .then(songs => {
-          this.displayedSongs = [...songs.items]
-        })
-        .catch(console.error)
+    remove: function (trackURI) {
+      this.removeFromPlaylist(trackURI)
     }
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-/* Style the tab content */
 .songs {
     float: left;
     padding: 0px 12px;

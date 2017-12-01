@@ -3,25 +3,16 @@
     <h1>Greetings, {{userID}}!</h1>
     <h2>Welcome to playlist manager</h2>
 
-    <!-- <ul>
-        <li v-for="playlist in playlists" :key="playlist.id">
-          <p v-on:click="showSongs(playlist.tracks.href)">{{playlist.name}}</p>
-        </li>
-    </ul> -->
-
     <div class="playlists">
       <div class="tab">
         <ul>
           <li v-for="playlist in playlists" :key="playlist.id">
-            <button class="tablinks" v-on:click="showSongs(playlist)">{{playlist.name}}</button>
+            <button v-bind:class="{ active: selectedPlaylist === playlist.id }" v-on:click="showSongs(playlist)">{{playlist.name}}</button>
           </li>
         </ul>
       </div>
 
-      <Songs 
-        v-bind:displayedSongs="displayedSongs"
-        v-bind:selectedPlaylist="selectedPlaylist"
-        v-bind:canModifyPlaylist="canModifyPlaylist" />
+      <Songs />
 
     </div>
 
@@ -30,9 +21,8 @@
 
 <script>
 
-import {mapActions} from 'vuex'
+import {mapGetters, mapActions} from 'vuex'
 
-import API from '../api/api'
 import Songs from './Songs.vue'
 
 export default {
@@ -40,61 +30,28 @@ export default {
   components: {
     Songs
   },
-  data () {
-    return {
-      playlists: [],
-      displayedSongs: [],
-      selectedPlaylist: null,
-      canModifyPlaylist: true
-    }
-  },
   computed: {
-    userID () {
-      return this.$store.state.userID
-    }
+    ...mapGetters([
+      'playlists',
+      'userID',
+      'selectedPlaylist'
+    ])
   },
   created: function () {
-    API.getUserID(this.$store.state.token)
-      .then(res => res.json())
-      .then(user => {
-        this.setUserID(user.id)
-        console.log(user)
-        return API.getUserPlaylists(this.$store.state.userID, this.$store.state.token)
-      })
-      .then(res => res.json())
-      .then(playlists => {
-        console.log(playlists)
-        this.playlists = playlists.items
-      })
-      .catch(console.error)
+    this.$store.dispatch('getUserID')
+      .then(() => this.$store.dispatch('getUserPlayLists'))
   },
   methods: {
     ...mapActions([
-      'setUserID'
+      'getSongsFromPlaylist'
     ]),
     showSongs: function (playlist) {
-      const link = playlist.tracks.href
-      const {id} = playlist
-
-      console.log(link)
-
-      API.getSongsFromPlaylist(link, this.$store.state.token)
-        .then(res => res.json())
-        .then(songs => {
-          console.log(songs)
-          this.displayedSongs = [...songs.items]
-          this.selectedPlaylist = id
-
-          // user may have references to other users' playlists, but he can modify only his own
-          this.canModifyPlaylist = songs.href.includes(this.$store.state.userID)
-        })
-        .catch(console.error)
+      this.getSongsFromPlaylist(playlist)
     }
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1, h2 {
   font-weight: normal;
@@ -105,7 +62,6 @@ h1, h2 {
   margin: 0 auto;
 }
 
-/* Style the tab */
 div.tab {
     float: left;
     border: 1px solid #ccc;
@@ -115,7 +71,6 @@ div.tab {
     overflow: auto;
 }
 
-/* Style the buttons inside the tab */
 div.tab button {
     display: block;
     background-color: inherit;
@@ -130,12 +85,10 @@ div.tab button {
     font-size: 17px;
 }
 
-/* Change background color of buttons on hover */
 div.tab button:hover {
     background-color: #ddd;
 }
 
-/* Create an active/current "tab button" class */
 div.tab button.active {
     background-color: #ccc;
 }

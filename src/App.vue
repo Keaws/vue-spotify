@@ -3,6 +3,8 @@
 
     <button v-if="!token" v-on:click="openLogin">Click to login with your Spotify account</button>
 
+    <p class="error-msg" v-if="error">Oops! Error occured: {{error}}</p>
+
     <Playlists v-if="token" />
   </div>
 </template>
@@ -12,14 +14,15 @@
 import Playlists from './components/Playlists.vue'
 import Songs from './components/Songs.vue'
 
-import {mapActions} from 'vuex'
+import {mapActions, mapGetters} from 'vuex'
 
 export default {
   name: 'app',
   computed: {
-    token () {
-      return this.$store.state.token
-    }
+    ...mapGetters([
+      'token',
+      'error'
+    ])
   },
   components: {
     Playlists,
@@ -63,5 +66,9 @@ ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
+}
+
+.error-msg {
+  color: red;
 }
 </style>
